@@ -1,0 +1,22 @@
+diff --git a/src/main/java/com/example/shop/PriceFormatter.java b/src/main/java/com/example/shop/PriceFormatter.java
+index 1111111..2222222 100644
+--- a/src/main/java/com/example/shop/PriceFormatter.java
++++ b/src/main/java/com/example/shop/PriceFormatter.java
+@@ -1,14 +1,16 @@
+ package com.example.shop;
+
+ import java.math.BigDecimal;
+ import java.math.RoundingMode;
++import java.util.Objects;
+
+ final class PriceFormatter {
+
+ 	private PriceFormatter() {
+ 	}
+
+ 	static String format(BigDecimal amount) {
+-		return "₹" + amount.setScale(2, RoundingMode.HALF_UP);
++		Objects.requireNonNull(amount, "amount");
++		return "₹" + amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
+ 	}
+ }

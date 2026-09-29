@@ -1,0 +1,16 @@
+{
+  "reviewId": "349f9166-e210-4398-bcc0-fc65f6047068",
+  "summary": "No issues found in security, correctness, performance, concurrency, resource management, error handling, or maintainability. The explicit null check improves failure messaging and the switch to toPlainString does not introduce risk given setScale(2) already avoids scientific notation in toString. Nothing needs fixing; consider ensuring tests cover null input and representative rounding scenarios if not already present.",
+  "findings": [],
+  "rejected": [],
+  "stats": {
+    "filesReviewed": 1,
+    "filesSkipped": 0,
+    "batches": 1,
+    "inputTokens": 1605,
+    "outputTokens": 2783,
+    "durationMs": 39371,
+    "model": "openai/gpt-5",
+    "promptVersion": "a3f63ee9"
+  }
+}

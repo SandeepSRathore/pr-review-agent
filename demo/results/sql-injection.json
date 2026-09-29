@@ -1,0 +1,72 @@
+{
+  "reviewId": "8c3d1a4a-e4ea-43d4-86c9-af042b91af8d",
+  "summary": "This change introduces a critical SQL injection vulnerability and leaks JDBC resources; both must be fixed before merging. Additionally, the final 'dataSource' field is never initialized, leading to a compile-time error. Narrow the exception type and add tests covering quotes, injection attempts, null names, and empty results.",
+  "findings": [
+    {
+      "file": "src/main/java/com/example/shop/UserRepository.java",
+      "startLine": 15,
+      "endLine": 15,
+      "severity": "CRITICAL",
+      "category": "SECURITY",
+      "title": "SQL injection via string concatenation in query",
+      "rationale": "The SQL is built by concatenating the untrusted parameter 'name' directly into the query on line 15. This enables SQL injection and also breaks on inputs containing quotes. Use a PreparedStatement with a parameter placeholder and bind the value.",
+      "suggestedFix": "public List<User> findByName(String name) throws Exception {\n\t\ttry (Connection connection = dataSource.getConnection();\n\t\t\t java.sql.PreparedStatement ps = connection.prepareStatement(\"SELECT * FROM users WHERE name = ?\")) {\n\t\t\tif (name == null) {\n\t\t\t\tps.setNull(1, java.sql.Types.VARCHAR);\n\t\t\t} else {\n\t\t\t\tps.setString(1, name);\n\t\t\t}\n\t\t\ttry (ResultSet rows = ps.executeQuery()) {\n\t\t\t\treturn UserMapper.map(rows);\n\t\t\t}\n\t\t}\n\t}",
+      "confidence": 0.98
+    },
+    {
+      "file": "src/main/java/com/example/shop/UserRepository.java",
+      "startLine": 13,
+      "endLine": 16,
+      "severity": "MAJOR",
+      "category": "RESOURCE_MANAGEMENT",
+      "title": "JDBC resources are not closed, causing leaks",
+      "rationale": "Connection, Statement, and ResultSet created on lines 13-15 are not closed. This will leak database connections and cursors under normal execution and on exceptions. Use try-with-resources to ensure all JDBC resources are closed.",
+      "suggestedFix": "public List<User> findByName(String name) throws Exception {\n\t\ttry (Connection connection = dataSource.getConnection();\n\t\t\t java.sql.PreparedStatement ps = connection.prepareStatement(\"SELECT * FROM users WHERE name = ?\")) {\n\t\t\tif (name == null) {\n\t\t\t\tps.setNull(1, java.sql.Types.VARCHAR);\n\t\t\t} else {\n\t\t\t\tps.setString(1, name);\n\t\t\t}\n\t\t\ttry (ResultSet rows = ps.executeQuery()) {\n\t\t\t\treturn UserMapper.map(rows);\n\t\t\t}\n\t\t}\n\t}",
+      "confidence": 0.95
+    },
+    {
+      "file": "src/main/java/com/example/shop/UserRepository.java",
+      "startLine": 10,
+      "endLine": 10,
+      "severity": "MAJOR",
+      "category": "CORRECTNESS",
+      "title": "Final field 'dataSource' is never initialized",
+      "rationale": "The field 'dataSource' is declared final on line 10 but is never initialized in a constructor or at declaration. This will not compile unless a constructor assigns it. Add a constructor and assign the field (or remove final if using field injection, but that risks NPEs).",
+      "suggestedFix": "public class UserRepository {\n\n\tprivate final javax.sql.DataSource dataSource;\n\n\tpublic UserRepository(javax.sql.DataSource dataSource) {\n\t\tthis.dataSource = dataSource;\n\t}\n",
+      "confidence": 0.92
+    },
+    {
+      "file": "src/main/java/com/example/shop/UserRepository.java",
+      "startLine": 12,
+      "endLine": 12,
+      "severity": "MINOR",
+      "category": "ERROR_HANDLING",
+      "title": "Overly broad 'throws Exception' in repository method",
+      "rationale": "The method signature on line 12 declares 'throws Exception', which is too broad and hides the specific failure modes (e.g., SQLException). This makes callers handle overly generic exceptions and complicates recovery or logging.",
+      "suggestedFix": "",
+      "confidence": 0.8
+    },
+    {
+      "file": "src/main/java/com/example/shop/UserRepository.java",
+      "startLine": 12,
+      "endLine": 16,
+      "severity": "MINOR",
+      "category": "TESTING",
+      "title": "Missing tests for new findByName query, including injection and nulls",
+      "rationale": "New query logic on lines 12-16 lacks tests for risky cases: inputs containing quotes, attempts at SQL injection, null names, and names that yield no results. Without such tests, regressions in query construction or parameter binding are likely to go unnoticed.",
+      "suggestedFix": "",
+      "confidence": 0.75
+    }
+  ],
+  "rejected": [],
+  "stats": {
+    "filesReviewed": 1,
+    "filesSkipped": 0,
+    "batches": 1,
+    "inputTokens": 3317,
+    "outputTokens": 11485,
+    "durationMs": 224839,
+    "model": "openai/gpt-5",
+    "promptVersion": "a3f63ee9"
+  }
+}

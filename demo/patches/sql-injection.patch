@@ -1,0 +1,36 @@
+From 3f1c2a9d0b7e4c5a8f6e2d1c0b9a8f7e6d5c4b3a Mon Sep 17 00:00:00 2001
+From: Dev <dev@example.com>
+Subject: [PATCH] Add user search by name
+
+---
+ src/main/java/com/example/shop/UserRepository.java | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/src/main/java/com/example/shop/UserRepository.java b/src/main/java/com/example/shop/UserRepository.java
+index 1a2b3c4..5d6e7f8 100644
+--- a/src/main/java/com/example/shop/UserRepository.java
++++ b/src/main/java/com/example/shop/UserRepository.java
+@@ -1,12 +1,18 @@
+ package com.example.shop;
+
+ import java.util.List;
++import java.sql.Connection;
++import java.sql.ResultSet;
++import java.sql.Statement;
+
+ public class UserRepository {
+
+-	private final JdbcClient jdbc;
++	private final DataSource dataSource;
+
+-	public List<User> findAll() {
+-		return jdbc.sql("SELECT * FROM users").query(User.class).list();
++	public List<User> findByName(String name) throws Exception {
++		Connection connection = dataSource.getConnection();
++		Statement statement = connection.createStatement();
++		ResultSet rows = statement.executeQuery("SELECT * FROM users WHERE name = '" + name + "'");
++		return UserMapper.map(rows);
+ 	}
+ }
+--
+2.49.0
