@@ -1,0 +1,19 @@
+# Local infrastructure. spring-boot-docker-compose starts this automatically when review-agent boots
+# (spring.docker.compose.file points here), and stops it on shutdown.
+services:
+  pgvector:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: reviewagent
+      POSTGRES_USER: reviewagent
+      POSTGRES_PASSWORD: reviewagent
+    ports:
+      - "5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    labels:
+      # The pgvector image isn't auto-detected, so tell Spring Boot to treat it as Postgres
+      org.springframework.boot.service-connection: postgres
+
+volumes:
+  pgdata:

@@ -1,0 +1,21 @@
+server:
+  port: ${PORT:8091}
+
+spring:
+  application:
+    name: review-tools-mcp-server
+  threads:
+    virtual:
+      enabled: true
+  ai:
+    mcp:
+      server:
+        protocol: STREAMABLE
+        name: review-tools
+        version: 0.1.0
+        type: SYNC
+        instructions: >
+          Deterministic code-analysis tools for pull request review. Tools only read the code they
+          are given; none of them modify a repository.
+        streamable-http:
+          mcp-endpoint: /mcp

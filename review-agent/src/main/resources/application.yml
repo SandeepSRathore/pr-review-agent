@@ -1,0 +1,66 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: review-agent
+  threads:
+    virtual:
+      enabled: true
+  docker:
+    compose:
+      # Relative to the working directory; spring-boot:run runs from review-agent/.
+      file: ${REVIEW_COMPOSE_FILE:../compose.yaml}
+  ai:
+    chat:
+      client:
+        # Two ChatModels are on the classpath; ModelRouter builds a ChatClient per provider and tier.
+        enabled: false
+    model:
+      image: none
+      moderation: none
+      audio:
+        speech: none
+        transcription: none
+    # Timeouts and retries for review calls are set per client by ModelRouter (review.models.request-timeout).
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:}
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+
+review:
+  models:
+    # Tried in order; a provider without an API key is skipped.
+    provider-order: anthropic, openai
+    # A reasoning model reviewing a large diff can think for minutes. Provider defaults (60s, several
+    # retries) cancel such calls and re-send them, paying for every attempt.
+    request-timeout: 5m
+    max-retries: 1
+    tiers:
+      deep:
+        anthropic:
+          model: claude-opus-5-5
+          effort: high
+          max-tokens: 16000
+        openai:
+          model: gpt-5
+          effort: medium
+      fast:
+        anthropic:
+          # Haiku 4.5 doesn't accept an effort setting.
+          model: claude-haiku-4-5
+          max-tokens: 8000
+        openai:
+          model: gpt-5-mini
+          effort: low
+  reviewer:
+    min-confidence: 0.6
+    max-findings: 25
+    max-input-tokens-per-batch: 60000
+    max-repair-attempts: 2
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
